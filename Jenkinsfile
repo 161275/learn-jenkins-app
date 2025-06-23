@@ -21,7 +21,7 @@ pipeline {
     //         }
     //     }
         stage('Tests') {
-            Parallel {
+            parallel {
                 stage('Unitest') {
                     agent {
                         docker {
