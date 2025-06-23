@@ -2,7 +2,25 @@ pipeline {
     agent any
 
     stages {
-        stage('Build') {
+    //     stage('Build') {
+    //         agent {
+    //             docker {
+    //                 image 'node:18-alpine'
+    //                 reuseNode true
+    //             }
+    //         }
+    //         steps {
+    //             sh '''
+    //                ls -la
+    //                node --version
+    //                npm --version
+    //                npm ci
+    //                npm run build
+    //                ls -la
+    //             '''      
+    //         }
+    //     }
+        stage('Test') {
             agent {
                 docker {
                     image 'node:18-alpine'
@@ -10,35 +28,34 @@ pipeline {
                 }
             }
             steps {
+                echo "Test Stage"
                 sh '''
-                   ls -la
-                   node --version
-                   npm --version
-                   npm ci
-                   npm run build
-                   ls -la
-                '''      
+                   test -f build/index.html 
+                   npm test
+                '''
             }
         }
-        stage('Test') {
-            // agent {
-            //     docker {
-            //         image 'node:18-alpine'
-            //         reuseNode true
-            //     }
-            // }
+        stage('E2E') {
+            agent {
+                docker {
+                    image 'mcr.microsoft.com/playwright:v1.53.0-noble'
+                    reuseNode true
+                }
+            }
             steps {
-                echo "Test Stage"
-                // sh '''
-                //    test -f build/index.html 
-                //    npm test
-                // '''
+                sh '''
+                   npm install serve
+                   node_modules/.bin/serve -s build &
+                   sleep 10
+                   npx playwrite test
+                '''
             }
         }
     }
+    
     post {
         always {
-            junit 'test-results/junit.xml'
+            junit 'jest-results/junit.xml'
         }
     }
 }
