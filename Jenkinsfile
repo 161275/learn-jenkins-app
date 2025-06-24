@@ -90,8 +90,9 @@ pipeline {
         }
         stage('Approval') {
             steps {
-                input message: 'Ready to deploy?', ok: 'Yes, I am sure and ready to deploy'
-            }
+                timeout(15) {
+                    nput message: 'Ready to deploy?', ok: 'Yes, I am sure and ready to deploy'
+                }
         }
         stage('Deploy prod') {
             agent {
