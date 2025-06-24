@@ -90,7 +90,7 @@ pipeline {
         }
         stage('Approval') {
             steps {
-                nput message: 'Ready to deploy?', ok: 'Yes, I am sure and ready to deploy'
+                input message: 'Ready to deploy?', ok: 'Yes, I am sure and ready to deploy'
             }
         }
         stage('Deploy prod') {
