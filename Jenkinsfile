@@ -99,7 +99,7 @@ pipeline {
                 }
             }
             environment {
-                CI_ENVIRONMENT_URL = 'duyajn_wjna'
+                CI_ENVIRONMENT_URL = 'STAGING_URL_TO_BE_SET'
             }
             steps {
                 sh '''
