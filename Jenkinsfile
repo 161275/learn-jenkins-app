@@ -108,7 +108,6 @@ pipeline {
             }
             steps {
                 sh '''
-                    // npm install netlify-cli@20.1.1 node-jq
                     netlify --version
                     echo "Deploying to Prod. Site ID: $NETLIFY_SITE_ID"
                     netlify status
@@ -160,7 +159,6 @@ pipeline {
             }
             steps {
                 sh '''
-                    // npm install netlify-cli@20.1.1
                     netlify --version
                     echo "Deploying to Prod. Site ID: $NETLIFY_SITE_ID"
                     netlify status
