@@ -57,14 +57,15 @@ pipeline {
                     agent {
                         docker {
                             // image 'mcr.microsoft.com/playwright:v1.53.0-noble'
-                            image 'mcr.microsoft.com/playwright:v1.39.0-jammy'
+                            image 'my-playwright'
                             reuseNode true
                         }
                     }
                     steps {
                         sh '''
-                        npm install serve
-                        node_modules/.bin/serve -s build &
+                        // npm install serve
+                        // node_modules/.bin/serve -s build &
+                        serve -s build &
                         sleep 10
                         npx playwright test --reporter=html
                         '''
@@ -100,7 +101,7 @@ pipeline {
         stage('Deploy staging') {
             agent {
                 docker {
-                    image 'mmy-playwright'
+                    image 'my-playwright'
                     reuseNode true
                 }
             }
