@@ -29,6 +29,7 @@ pipeline {
                         #aws s3 cp index.html s3://$AWS_S3_BUCKET/index.html
                         #aws s3 sync build s3://$AWS_S3_BUCKET
                         aws ecs register-task-definition --cli-input-json file://aws/task-definition-prod.json
+                        aws ecs update-service --cluster my-fargate-cluster --service LearnJenkinsApp-TaskDefinition-prod-service-5v6b465m --task-definition LearnJenkinsApp-TaskDefinition-prod:3
                     '''
                 }
             }
