@@ -5,6 +5,9 @@ pipeline {
         // NETLIFY_AUTH_TOKEN = credentials('netlify-token')
         REACT_APP_VERSION = "1.0.$BUILD_ID"
         AWS_DEFAULT_REGION = "us-east-1"
+        AWS_ECS_CLUSTER = "my-fargate-cluster"
+        AWS_ECS_SERVICE_PROD = "LearnJenkinsApp-TaskDefinition-prod-service-5v6b465m"
+        AWS_ECS_TASK_PROD = "LearnJenkinsApp-TaskDefinition-prod"
 
     }
 
@@ -30,7 +33,8 @@ pipeline {
                         #aws s3 sync build s3://$AWS_S3_BUCKET
                         yum install jq -y
                         LATEST_TD_REVISION=$(aws ecs register-task-definition --cli-input-json file://aws/task-definition-prod.json | jq '.taskDefinition.revision')
-                        aws ecs update-service --cluster my-fargate-cluster --service LearnJenkinsApp-TaskDefinition-prod-service-5v6b465m --task-definition LearnJenkinsApp-TaskDefinition-prod:$LATEST_TD_REVISION
+                        aws ecs update-service --cluster $AWS_ECS_CLUSTER --service $AWS_ECS_SERVICE_PROD --task-definition $AWS_ECS_TASK_PROD:$LATEST_TD_REVISION
+                        aws ecs wait services-stable --cluster A$WS_ECS_CLUSTER --service $AWS_ECS_SERVICE_PROD
                     '''
                 }
             }
