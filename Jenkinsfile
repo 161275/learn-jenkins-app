@@ -1,13 +1,37 @@
 pipeline {
     agent any
     environment {
-        NETLIFY_SITE_ID = '6e92f3a3-0f41-4fd1-b86f-4a04c91b8aba'
-        NETLIFY_AUTH_TOKEN = credentials('netlify-token')
+        // NETLIFY_SITE_ID = '6e92f3a3-0f41-4fd1-b86f-4a04c91b8aba'
+        // NETLIFY_AUTH_TOKEN = credentials('netlify-token')
         REACT_APP_VERSION = "1.0.$BUILD_ID"
+        
     }
 
     stages {
-
+        stage('deploy to AWS') {
+            agent {
+                docker {
+                    image 'amazon/aws-cli'
+                    args "--entrypoint=''"
+                    reuseNode true
+                }
+            }
+            environment {
+                // AWS_S3_BUCKET = "jenkins-learning-bucket34241"
+            }
+            steps {
+                withCredentials([usernamePassword(credentialsId: 'my-aws', passwordVariable: 'AWS_SECRET_ACCESS_KEY', usernameVariable: 'AWS_ACCESS_KEY_ID')]) {
+                    sh '''
+                        aws --version
+                        #aws s3 ls
+                        #echo "Hello s3" > index.html
+                        #aws s3 cp index.html s3://$AWS_S3_BUCKET/index.html
+                        #aws s3 sync build s3://$AWS_S3_BUCKET
+                        aws ecs register-task-definition --cli-input-json file://aws/task-definition-prod.json
+                    '''
+                }
+            }
+        }
         stage('Build') {
             agent {
                 docker {
@@ -18,83 +42,61 @@ pipeline {
             steps {
                 sh '''
                    echo "small change"
-                   ls -la
-                   node --version
-                   npm --version
+                   #ls -la
+                   #node --version
+                   #npm --version
                    npm ci
                    npm run build
                    ls -la
                 '''      
             }
         }
-        stage('AWS') {
-            agent {
-                docker {
-                    image 'amazon/aws-cli'
-                    args "--entrypoint=''"
-                    reuseNode true
-                }
-            }
-            environment {
-                AWS_S3_BUCKET = "jenkins-learning-bucket34241"
-            }
-            steps {
-                withCredentials([usernamePassword(credentialsId: 'my-aws', passwordVariable: 'AWS_SECRET_ACCESS_KEY', usernameVariable: 'AWS_ACCESS_KEY_ID')]) {
-                    sh '''
-                        aws --version
-                        #aws s3 ls
-                        #echo "Hello s3" > index.html
-                        #aws s3 cp index.html s3://$AWS_S3_BUCKET/index.html
-                        aws s3 sync build s3://$AWS_S3_BUCKET
-                    '''
-                }
-            }
-        }
-        stage('Tests') {
-            parallel {
-                stage('Unitest') {
-                    agent {
-                        docker {
-                            image 'node:18-alpine'
-                            reuseNode true
-                        }
-                    }
-                    steps {
-                        echo "Test Stage"
-                        sh '''
-                        test -f build/index.html 
-                        npm test
-                        '''
-                    }
-                    post {
-                        always {
-                            junit 'jest-results/junit.xml'
-                        }
-                    }
-                }
-                stage('E2E') {
-                    agent {
-                        docker {
-                            // image 'mcr.microsoft.com/playwright:v1.53.0-noble'
-                            image 'my-playwright'
-                            reuseNode true
-                        }
-                    }
-                    steps {
-                        sh '''
-                        serve -s build &
-                        sleep 10
-                        npx playwright test --reporter=html
-                        '''
-                    }
-                    post {
-                        always {
-                            publishHTML([allowMissing: false, alwaysLinkToLastBuild: false, icon: '', keepAll: false, reportDir: 'playwright-report', reportFiles: 'index.html', reportName: 'Playwright Local', reportTitles: '', useWrapperFileDirectly: true])
-                        }
-                    }
-                }
-            }
-        }   
+        
+        // stage('Tests') {
+        //     parallel {
+        //         stage('Unitest') {
+        //             agent {
+        //                 docker {
+        //                     image 'node:18-alpine'
+        //                     reuseNode true
+        //                 }
+        //             }
+        //             steps {
+        //                 echo "Test Stage"
+        //                 sh '''
+        //                 test -f build/index.html 
+        //                 npm test
+        //                 '''
+        //             }
+        //             post {
+        //                 always {
+        //                     junit 'jest-results/junit.xml'
+        //                 }
+        //             }
+        //         }
+        //         stage('E2E') {
+        //             agent {
+        //                 docker {
+        //                     // image 'mcr.microsoft.com/playwright:v1.53.0-noble'
+        //                     image 'my-playwright'
+        //                     reuseNode true
+        //                 }
+        //             }
+        //             steps {
+        //                 sh '''
+        //                 serve -s build &
+        //                 sleep 10
+        //                 npx playwright test --reporter=html
+        //                 '''
+        //             }
+        //             post {
+        //                 always {
+        //                     publishHTML([allowMissing: false, alwaysLinkToLastBuild: false, icon: '', keepAll: false, reportDir: 'playwright-report', reportFiles: 'index.html', reportName: 'Playwright Local', reportTitles: '', useWrapperFileDirectly: true])
+        //                 }
+        //             }
+        //         }
+        //     }
+        // }   
         // stage('Deploy staging') {
         //     agent {
         //         docker {
@@ -115,32 +117,32 @@ pipeline {
         //         }
         //     }
         // }
-        stage('Deploy staging') {
-            agent {
-                docker {
-                    image 'my-playwright'
-                    reuseNode true
-                }
-            }
-            environment {
-                CI_ENVIRONMENT_URL = 'STAGING_URL_TO_BE_SET'
-            }
-            steps {
-                sh '''
-                    netlify --version
-                    echo "Deploying to Prod. Site ID: $NETLIFY_SITE_ID"
-                    netlify status
-                    netlify deploy --dir=build --json > deploy-output.json
-                    CI_ENVIRONMENT_URL=$(jq -r '.deploy_url' deploy-output.json)
-                    npx playwright test --reporter=html
-                '''
-            }
-            post {
-                always {
-                    publishHTML([allowMissing: false, alwaysLinkToLastBuild: false, icon: '', keepAll: false, reportDir: 'playwright-report', reportFiles: 'index.html', reportName: 'Staging E2E', reportTitles: '', useWrapperFileDirectly: true])
-                }
-            }
-        }
+        // stage('Deploy staging') {
+        //     agent {
+        //         docker {
+        //             image 'my-playwright'
+        //             reuseNode true
+        //         }
+        //     }
+        //     environment {
+        //         CI_ENVIRONMENT_URL = 'STAGING_URL_TO_BE_SET'
+        //     }
+        //     steps {
+        //         sh '''
+        //             netlify --version
+        //             echo "Deploying to Prod. Site ID: $NETLIFY_SITE_ID"
+        //             netlify status
+        //             netlify deploy --dir=build --json > deploy-output.json
+        //             CI_ENVIRONMENT_URL=$(jq -r '.deploy_url' deploy-output.json)
+        //             npx playwright test --reporter=html
+        //         '''
+        //     }
+        //     post {
+        //         always {
+        //             publishHTML([allowMissing: false, alwaysLinkToLastBuild: false, icon: '', keepAll: false, reportDir: 'playwright-report', reportFiles: 'index.html', reportName: 'Staging E2E', reportTitles: '', useWrapperFileDirectly: true])
+        //         }
+        //     }
+        // }
         // stage('Approval') {
         //     steps {
         //         timeout(15) {
@@ -166,30 +168,30 @@ pipeline {
         //         '''      
         //     }
         // }
-        stage('Deploy prod') {
-            agent {
-                docker {
-                    image 'my-playwright'
-                    reuseNode true
-                }
-            }
-            environment {
-                CI_ENVIRONMENT_URL = 'https://dulcet-cheesecake-60d93a.netlify.app'
-            }
-            steps {
-                sh '''
-                    netlify --version
-                    echo "Deploying to Prod. Site ID: $NETLIFY_SITE_ID"
-                    netlify status
-                    netlify deploy --dir=build --prod
-                    npx playwright test --reporter=html
-                '''
-            }
-            post {
-                always {
-                    publishHTML([allowMissing: false, alwaysLinkToLastBuild: false, icon: '', keepAll: false, reportDir: 'playwright-report', reportFiles: 'index.html', reportName: 'Prod E2E', reportTitles: '', useWrapperFileDirectly: true])
-                }
-            }
-        }
+        // stage('Deploy prod') {
+        //     agent {
+        //         docker {
+        //             image 'my-playwright'
+        //             reuseNode true
+        //         }
+        //     }
+        //     environment {
+        //         CI_ENVIRONMENT_URL = 'https://dulcet-cheesecake-60d93a.netlify.app'
+        //     }
+        //     steps {
+        //         sh '''
+        //             netlify --version
+        //             echo "Deploying to Prod. Site ID: $NETLIFY_SITE_ID"
+        //             netlify status
+        //             netlify deploy --dir=build --prod
+        //             npx playwright test --reporter=html
+        //         '''
+        //     }
+        //     post {
+        //         always {
+        //             publishHTML([allowMissing: false, alwaysLinkToLastBuild: false, icon: '', keepAll: false, reportDir: 'playwright-report', reportFiles: 'index.html', reportName: 'Prod E2E', reportTitles: '', useWrapperFileDirectly: true])
+        //         }
+        //     }
+        // }
     }
 }
