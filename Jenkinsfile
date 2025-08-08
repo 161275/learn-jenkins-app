@@ -6,25 +6,25 @@ pipeline {
     }
 
     stages {
-        // stage('Build') {
-        //     agent {
-        //         docker {
-        //         image 'node:18-alpine'
-        //         reuseNode true
-        //         }
-        //     }
-        //     steps {
-        //         sh '''
-        //         ls -la
-        //         node --version
-        //         npm --version
-        //         npm ci
-        //         npm test
-        //         npm run build
-        //         ls -la
-        //         '''
-        //     }
-        // }
+        stage('Build') {
+            agent {
+                docker {
+                image 'node:18-alpine'
+                reuseNode true
+                }
+            }
+            steps {
+                sh '''
+                ls -la
+                node --version
+                npm --version
+                npm ci
+                npm test
+                npm run build
+                ls -la
+                '''
+            }
+        }
         // stage('Test') {
         //     parallel {
         //         stage('Unit Test'){
@@ -84,7 +84,7 @@ pipeline {
                 node_modules/.bin/netlify deploy --dir=build --json > deploy_stage.json
                 '''
                 script {
-                env.stage_url = sh(script: "node_modules/.bin/node-jq -r '.deploy_url' deploy_stage.json", returnStdout: true)
+                    env.STAGE_URL = sh(script: "node_modules/.bin/node-jq -r '.deploy_url' deploy_stage.json", returnStdout: true)
                 }
                 echo '${env.stage_url}'
             }
@@ -97,7 +97,7 @@ pipeline {
                 }
             }
             environment {
-                CI_ENVIRONMENT_URL = '${env.stage_url}'
+                CI_ENVIRONMENT_URL = '${env.STAGE_URL}'
             }
             steps {
                 sh '''
