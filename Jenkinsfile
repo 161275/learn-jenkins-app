@@ -7,6 +7,11 @@ pipeline {
     }
 
     stages {
+        stage ('docker') {
+            steps {
+                sh 'docker build -t my-playwright .'
+            }
+        }
         stage('Build') {
             agent {
                 docker {
@@ -26,54 +31,35 @@ pipeline {
                 '''
             }
         }
-        stage('Test') {
-            parallel {
-                stage('Unit Test'){
-                    agent {
-                        docker {
-                            image 'node:18-alpine'
-                            reuseNode true
-                        }
-                    }
-                    steps {
-                        sh '''
-                        test -f build/index.html
-                        npm test
-                        '''
-                    }
-                    post {
-                        always {
-                            junit 'jest-results/junit.xml'
-                        }
-                    }
+        stage('Local build Test'){
+            agent {
+                docker {
+                    image 'my-playwright '
+                    reuseNode true
                 }
-                stage('Local E2E Test'){
-                    agent {
-                        docker {
-                            image 'mcr.microsoft.com/playwright:v1.39.0-jammy'
-                            reuseNode true
-                        }
-                    }
-                    steps {
-                        sh '''
-                        npm install serve
-                        node_modules/.bin/serve -S build &
-                        sleep 10
-                        npx playwright test --reporter=html
-                        '''
-                    }
-                    post {
-                        always {
-                            publishHTML([allowMissing: false, alwaysLinkToLastBuild: false, icon: '', keepAll: false, reportDir: 'playwright-report', reportFiles: 'index.html', reportName: 'HTML Report Local', reportTitles: '', useWrapperFileDirectly: true])
-                        }
-                    }
+            }
+            steps {
+                sh '''
+                test -f build/index.html
+                npm test
+                npm install serve
+                serve -S build &
+                sleep 10
+                npx playwright test --reporter=html
+                '''
+            }
+            post {
+                always {
+                    junit 'jest-results/junit.xml'
+                    publishHTML([allowMissing: false, alwaysLinkToLastBuild: false, icon: '', keepAll: false, reportDir: 'playwright-report', reportFiles: 'index.html', reportName: 'HTML Report Local', reportTitles: '', useWrapperFileDirectly: true])
+                
                 }
             }
         }
         stage('deploy stage'){
             agent {
                 docker {
-                    image 'mcr.microsoft.com/playwright:v1.39.0-jammy'
+                    image 'my-playwright'
                     reuseNode true
                 }
             }
@@ -82,11 +68,10 @@ pipeline {
             }
             steps {
                 sh '''
-                npm install netlify-cli@20.1.1 node-jq
-                node_modules/.bin/netlify --version 
-                node_modules/.bin/netlify status
-                node_modules/.bin/netlify deploy --dir=build --json > deploy_stage.json
-                CI_ENVIRONMENT_URL=$(node_modules/.bin/node-jq -r '.deploy_url' deploy_stage.json)
+                netlify --version 
+                netlify status
+                netlify deploy --dir=build --json > deploy_stage.json
+                CI_ENVIRONMENT_URL=$(node-jq -r '.deploy_url' deploy_stage.json)
                 npx playwright test --reporter=html
                 '''
             }
@@ -107,7 +92,7 @@ pipeline {
         stage('Prod Deploy'){
             agent {
                 docker {
-                    image 'mcr.microsoft.com/playwright:v1.39.0-jammy'
+                    image 'my-playwright'
                     reuseNode true
                 }
             }
@@ -116,10 +101,9 @@ pipeline {
             }
             steps {
                 sh '''
-                npm install netlify-cli@20.1.1
-                node_modules/.bin/netlify --version
-                node_modules/.bin/netlify status
-                node_modules/.bin/netlify deploy --dir=build --prod
+                netlify --version
+                netlify status
+                netlify deploy --dir=build --prod
                 npx playwright test --reporter=html
                 '''
             }
