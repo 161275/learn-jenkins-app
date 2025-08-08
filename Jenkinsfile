@@ -34,7 +34,7 @@ pipeline {
         stage('Local build Test'){
             agent {
                 docker {
-                    image 'my-playwright '
+                    image 'my-playwright'
                     reuseNode true
                 }
             }
