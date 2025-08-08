@@ -86,7 +86,7 @@ pipeline {
                 script {
                     env.STAGE_URL = sh(script: "node_modules/.bin/node-jq -r '.deploy_url' deploy_stage.json", returnStdout: true)
                 }
-                echo '${env.stage_url}'
+                echo "${env.stage_url}"
             }
         }
         stage('stage E2E'){
