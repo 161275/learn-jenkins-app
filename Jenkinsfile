@@ -69,7 +69,31 @@ pipeline {
                 }
             }
         }
-        stage('Deploy') {
+        stage('Deploy stage') {
+            agent {
+                docker {
+                image 'node:18-alpine'
+                reuseNode true
+                }
+            }
+            steps {
+                sh '''
+                npm install netlify-cli@20.1.1
+                node_modules/.bin/netlify --version
+                node_modules/.bin/netlify status
+                node_modules/.bin/netlify deploy --dir=build
+                '''
+            }
+        }
+        stage('Approval') {
+            steps {
+                timeout(time: 0, unit: 'HOURS') {
+                    input 'ready to deploy?'
+                }
+                
+            }
+        }
+        stage('Deploy prod') {
             agent {
                 docker {
                 image 'node:18-alpine'
