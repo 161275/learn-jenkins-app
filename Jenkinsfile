@@ -84,7 +84,7 @@ pipeline {
                 node_modules/.bin/netlify deploy --dir=build --json > deploy_stage.json
                 '''
                 script {
-                env.stage_url = sh(script: "node_modules/.bin/node-jq '.deploy_url' deploy_stage.json", returnStdout: true)
+                env.stage_url = sh(script: "node_modules/.bin/node-jq -r '.deploy_url' deploy_stage.json", returnStdout: true)
                 }
                 
             }
