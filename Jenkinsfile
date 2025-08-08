@@ -69,27 +69,7 @@ pipeline {
         //         }
         //     }
         // }
-        stage('Deploy stage') {
-            agent {
-                docker {
-                image 'node:18-alpine'
-                reuseNode true
-                }
-            }
-            steps {
-                sh '''
-                npm install netlify-cli@20.1.1 node-jq
-                node_modules/.bin/netlify --version 
-                node_modules/.bin/netlify status
-                node_modules/.bin/netlify deploy --dir=build --json > deploy_stage.json
-                '''
-                script {
-                    env.STAGE_URL = sh(script: "node_modules/.bin/node-jq -r '.deploy_url' deploy_stage.json", returnStdout: true)
-                }
-                echo "${env.stage_url}"
-            }
-        }
-        stage('stage E2E'){
+        stage('deploy stage'){
             agent {
                 docker {
                     image 'mcr.microsoft.com/playwright:v1.39.0-jammy'
@@ -97,10 +77,15 @@ pipeline {
                 }
             }
             environment {
-                CI_ENVIRONMENT_URL = "${env.STAGE_URL}"
+                CI_ENVIRONMENT_URL = "to_be_set"
             }
             steps {
                 sh '''
+                npm install netlify-cli@20.1.1 node-jq
+                node_modules/.bin/netlify --version 
+                node_modules/.bin/netlify status
+                node_modules/.bin/netlify deploy --dir=build --json > deploy_stage.json
+                CI_ENVIRONMENT_URL = $(node_modules/.bin/node-jq -r '.deploy_url' deploy_stage.json)
                 npx playwright test --reporter=html
                 '''
             }
@@ -118,23 +103,7 @@ pipeline {
                 
             }
         }
-        stage('Deploy prod') {
-            agent {
-                docker {
-                image 'node:18-alpine'
-                reuseNode true
-                }
-            }
-            steps {
-                sh '''
-                npm install netlify-cli@20.1.1
-                node_modules/.bin/netlify --version
-                node_modules/.bin/netlify status
-                node_modules/.bin/netlify deploy --dir=build --prod
-                '''
-            }
-        }
-        stage('Prod E2E'){
+        stage('Prod Deploy'){
             agent {
                 docker {
                     image 'mcr.microsoft.com/playwright:v1.39.0-jammy'
@@ -146,6 +115,10 @@ pipeline {
             }
             steps {
                 sh '''
+                npm install netlify-cli@20.1.1
+                node_modules/.bin/netlify --version
+                node_modules/.bin/netlify status
+                node_modules/.bin/netlify deploy --dir=build --prod
                 npx playwright test --reporter=html
                 '''
             }
