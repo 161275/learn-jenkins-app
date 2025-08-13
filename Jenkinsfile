@@ -7,23 +7,7 @@ pipeline {
     }
 
     stages {
-        stage ('aws cli'){
-            agent {
-                docker {
-                    image 'amazon/aws-cli'
-                    args '--entrypoint=""'
-                }
-            }
-            steps {
-                withCredentials([usernamePassword(credentialsId: 'my-aws', passwordVariable: 'AWS_SECRET_ACCESS_KEY', usernameVariable: 'AWS_ACCESS_KEY_ID')]) {
-                    sh '''
-                        aws --version
-                        aws s3 cp build/index.html s3://jekins-test/index.html
-                        aws s3 ls
-                    '''
-                }
-            }
-        }
+        
         stage('Build') {
             agent {
                 docker {
@@ -64,6 +48,25 @@ pipeline {
                     junit 'jest-results/junit.xml'
                     publishHTML([allowMissing: false, alwaysLinkToLastBuild: false, icon: '', keepAll: false, reportDir: 'playwright-report', reportFiles: 'index.html', reportName: 'HTML Report Local', reportTitles: '', useWrapperFileDirectly: true])
                 
+                }
+            }
+        }
+        stage ('aws deploy'){
+            agent {
+                docker {
+                    image 'amazon/aws-cli'
+                    args '--entrypoint=""'
+                    reuseNode true
+                }
+            }
+            steps {
+                withCredentials([usernamePassword(credentialsId: 'my-aws', passwordVariable: 'AWS_SECRET_ACCESS_KEY', usernameVariable: 'AWS_ACCESS_KEY_ID')]) {
+                    sh '''
+                        aws --version
+                        # aws s3 cp build/index.html s3://jekins-test/index.html
+                        aws s3 sync build s3://jekins-test
+                        aws s3 ls
+                    '''
                 }
             }
         }
