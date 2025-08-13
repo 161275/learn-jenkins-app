@@ -68,7 +68,7 @@ pipeline {
                         #aws s3 sync build s3://jekins-test
                         #aws s3 ls
                         aws ecs register-task-definition --cli-input-json file://AWS/task-def.json
-                        aws ecs update-service --cluster learn-jenkins-app-prod --service jenkins-app-prod-service-yuctno1d --task-definition jenkins-app-prod:1
+                        #aws ecs update-service --cluster learn-jenkins-app-prod --service jenkins-app-prod-service-yuctno1d --task-definition jenkins-app-prod:1
                     '''
                 }
             }
