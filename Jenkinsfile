@@ -64,8 +64,9 @@ pipeline {
                     sh '''
                         aws --version
                         # aws s3 cp build/index.html s3://jekins-test/index.html
-                        aws s3 sync build s3://jekins-test
-                        aws s3 ls
+                        #aws s3 sync build s3://jekins-test
+                        #aws s3 ls
+                        aws ecs register-task-definition --cli-input-json file://AWS/task-def.json
                     '''
                 }
             }
