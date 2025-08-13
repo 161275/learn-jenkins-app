@@ -4,7 +4,7 @@ pipeline {
         NETLIFY_SITE_ID = '6e92f3a3-0f41-4fd1-b86f-4a04c91b8aba'
         NETLIFY_AUTH_TOKEN = credentials('netlify-token')
         REACT_APP_VERSION = "1.2.$BUILD_ID"
-        AWS_DEFAULT_REGION = "us-east-1"
+        AWS_DEFAULT_REGION = "ap-south-1"
     }
 
     stages {
@@ -68,7 +68,7 @@ pipeline {
                         #aws s3 sync build s3://jekins-test
                         #aws s3 ls
                         aws ecs register-task-definition --cli-input-json file://AWS/task-def.json
-                        #aws ecs update-service --cluster learn-jenkins-app-prod --service jenkins-app-prod-service-yuctno1d --task-definition jenkins-app-prod:1
+                        aws ecs update-service --cluster learn-jenkins-app-prod --service jenkins-app-prod-service-yuctno1d --task-definition jenkins-app-prod:1
                     '''
                 }
             }
