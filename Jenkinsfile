@@ -75,14 +75,14 @@ pipeline {
                 }
             }
         }
-        stage('Approval') {
-            steps {
-                timeout(time: 1, unit: 'MINUTES') {
-                    input 'ready to deploy?'
-                }
+        // stage('Approval') {
+        //     steps {
+        //         timeout(time: 1, unit: 'MINUTES') {
+        //             input 'ready to deploy?'
+        //         }
                 
-            }
-        }
+        //     }
+        // }
         stage('Prod Deploy'){
             agent {
                 docker {
