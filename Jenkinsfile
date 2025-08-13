@@ -18,6 +18,7 @@ pipeline {
                 withCredentials([usernamePassword(credentialsId: 'my-aws', passwordVariable: 'AWS_SECRET_ACCESS_KEY', usernameVariable: 'AWS_ACCESS_KEY_ID')]) {
                     sh '''
                         aws --version
+                        aws s3 cp build/index.html s3://jekins-test/index.html
                         aws s3 ls
                     '''
                 }
