@@ -5,8 +5,8 @@ pipeline {
         NETLIFY_AUTH_TOKEN = credentials('netlify-token')
         REACT_APP_VERSION = "1.2.$BUILD_ID"
         AWS_DEFAULT_REGION = "ap-south-1"
-        AWS_ECS_CLUSTER = "learn-jenkins-app-prod"
-        AWS_ECS_SERVICE_PROD = "jenkins-app-prod-service-yuctno1d"
+        // AWS_ECS_CLUSTER = "learn-jenkins-app-prod"                          //deleted the cluster and service 
+        // AWS_ECS_SERVICE_PROD = "jenkins-app-prod-service-yuctno1d"          //create cluter and service replace it whenever need to use    
         APP_NAME = "my-jenkinsapp"
         AWS_DOCKER_REGISTRY = "505679505304.dkr.ecr.ap-south-1.amazonaws.com"
     }
