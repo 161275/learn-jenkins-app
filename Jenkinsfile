@@ -64,35 +64,36 @@ pipeline {
             }
             steps {
                 sh '''
-                amazon-linux-extras install docker
-                docker build -t my-jenkinsapp .
+                amazon-linux-extras ls
+                # amazon-linux-extras install docker
+                # docker build -t my-jenkinsapp .
                 '''
             }
         }
-        stage ('aws deploy'){
-            agent {
-                docker {
-                    image 'amazon/aws-cli'
-                    args '-u root --entrypoint=""'
-                    reuseNode true
-                }
-            }
-            steps {
-                withCredentials([usernamePassword(credentialsId: 'my-aws', passwordVariable: 'AWS_SECRET_ACCESS_KEY', usernameVariable: 'AWS_ACCESS_KEY_ID')]) {
-                    sh '''
-                        aws --version
-                        yum install jq -y
-                        # aws s3 cp build/index.html s3://jekins-test/index.html
-                        #aws s3 sync build s3://jekins-test
-                        #aws s3 ls
-                        aws ecs register-task-definition --cli-input-json file://AWS/task-def.json > task-def-new.json
-                        #task_version = $(jq -r '.taskDefinition.revision' task-def-new.json)
-                        aws ecs update-service --cluster $AWS_ECS_CLUSTER --service $AWS_ECS_SERVICE_PROD --task-definition jenkins-app-prod:$(jq -r '.taskDefinition.revision' task-def-new.json)
-                        aws ecs wait services-stable --cluster $AWS_ECS_CLUSTER --service $AWS_ECS_SERVICE_PROD
-                    '''
-                }
-            }
-        }
+        // stage ('aws deploy'){
+        //     agent {
+        //         docker {
+        //             image 'amazon/aws-cli'
+        //             args '-u root --entrypoint=""'
+        //             reuseNode true
+        //         }
+        //     }
+        //     steps {
+        //         withCredentials([usernamePassword(credentialsId: 'my-aws', passwordVariable: 'AWS_SECRET_ACCESS_KEY', usernameVariable: 'AWS_ACCESS_KEY_ID')]) {
+        //             sh '''
+        //                 aws --version
+        //                 yum install jq -y
+        //                 # aws s3 cp build/index.html s3://jekins-test/index.html
+        //                 #aws s3 sync build s3://jekins-test
+        //                 #aws s3 ls
+        //                 aws ecs register-task-definition --cli-input-json file://AWS/task-def.json > task-def-new.json
+        //                 #task_version = $(jq -r '.taskDefinition.revision' task-def-new.json)
+        //                 aws ecs update-service --cluster $AWS_ECS_CLUSTER --service $AWS_ECS_SERVICE_PROD --task-definition jenkins-app-prod:$(jq -r '.taskDefinition.revision' task-def-new.json)
+        //                 aws ecs wait services-stable --cluster $AWS_ECS_CLUSTER --service $AWS_ECS_SERVICE_PROD
+        //             '''
+        //         }
+        //     }
+        // }
         // stage('deploy stage'){
         //     agent {
         //         docker {
