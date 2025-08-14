@@ -64,9 +64,12 @@ pipeline {
             }
             steps {
                 sh '''
-                amazon-linux-extras ls
+                yum install -y docker
+                yum clean all
+                rm -rf /var/cache/yum
+                # amazon-linux-extras ls
                 # amazon-linux-extras install docker
-                # docker build -t my-jenkinsapp .
+                docker build -t my-jenkinsapp .
                 '''
             }
         }
