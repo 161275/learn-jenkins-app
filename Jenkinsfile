@@ -10,6 +10,12 @@ pipeline {
     }
 
     stages {
+        stage('run nightly build')
+        {
+            steps {
+                build 'nightly-build'
+            }
+        }
         
         // stage('Build') {
         //     agent {
