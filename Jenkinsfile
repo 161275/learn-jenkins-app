@@ -7,6 +7,8 @@ pipeline {
         AWS_DEFAULT_REGION = "ap-south-1"
         AWS_ECS_CLUSTER = "learn-jenkins-app-prod"
         AWS_ECS_SERVICE_PROD = "jenkins-app-prod-service-yuctno1d"
+        APP_NAME = "my-jenkinsapp"
+        AWS_DOCKER_REGISTRY = "505679505304.dkr.ecr.ap-south-1.amazonaws.com"
     }
 
     stages {
@@ -70,14 +72,19 @@ pipeline {
                 }
             }
             steps {
+                withCredentials([usernamePassword(credentialsId: 'my-aws', passwordVariable: 'AWS_SECRET_ACCESS_KEY', usernameVariable: 'AWS_ACCESS_KEY_ID')]) {    
                 sh '''
                 # yum install -y docker
                 # yum clean all
                 # rm -rf /var/cache/yum
                 # amazon-linux-extras ls
                 # amazon-linux-extras install docker
-                docker build -t my-jenkinsapp .
+                docker build -t $AWS_DOCKER_REGISTRY/$APP_NAME:$REACT_APP_VERSION .
+                aws ecr get-login-password | docker login --username AWS --password-stdin $AWS_DOCKER_REGISTRY
+                #aws ecr get-login-password  --region <region> | docker login --username AWS --password-stdin
+                docker push $AWS_DOCKER_REGISTRY/$APP_NAME:$REACT_APP_VERSION .
                 '''
+                }
             }
         }
         stage ('aws deploy'){
