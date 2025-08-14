@@ -3,7 +3,7 @@
     "containerDefinitions": [
         {
             "name": "prod-deploy",
-            "image": "nginx:1.27-alpine",
+            "image": "505679505304.dkr.ecr.ap-south-1.amazonaws.com/my-jenkinsapp:1.2.98",
             "cpu": 0,
             "portMappings": [
                 {
