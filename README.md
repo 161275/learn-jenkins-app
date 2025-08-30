@@ -1,71 +1,45 @@
-# Learn Jenkins App
-#dummy add
+created E2E jenkins flow
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+1. Netlify deploy
+-> downloaded a simple node web app
+-> uses github for scm polling and setup cron for automatic build after there is a new push 
+-> uses a docker image to install package, create build run tests
+-> install serve on the same image and run the app locally and tested using playwright 
+-> hosted on netlify --> stage deploy -> run test on staginbg server           ->can add approval stage in pipeline
+                    --> prode deploy -> run test on prod server
+-> Later combined all the required dependencies to run whole pipeline in a single image and scheduled a cron to run in the night and uses that image for dev.
 
-## Available Scripts
 
-In the project directory, you can run:
+2.integration with AWS
+2.1 Hosted on S3 as static website
+    -> use awscli image
+    -> created jenkins user and access key 
+    -> created s3 bucket 
+    -> configured jenkins for that user (stored the token in jenkins)
+    -> sync build with s3 bucket through AWS cli
 
-### `npm start`
+2.2 created an image for of whole application and pushed on ECR
+    -> created a custom awscli image to run docker
+    -> created repo on ECR
+    -> created an image FROM nginx and copied build
+    -> pushed on ECR
+    -> created a fargate cluster and task definiation using latest application image created above 
+    -> register a new task def version
+    -> update cluter service with new task version
+    -> wait untill the service is updated and tasks are running.
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+Version controlling using $BUILD_ID of jenkins pipeline number
+parsing using jq for intermediate steps
+to increase efficiency of development cycle -> using saperate pipeline for custom image creation and installing additional dependencies.
+                                            -> running these pipelines in off-peak hours (using scheduled cron jobs)
 
-### `npm test`
+<img src="./jenkins_pipeline_diagram_v1.png">
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
 
-### `npm run build`
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
 
-### `npm run eject`
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
-
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
-
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
